@@ -1,0 +1,818 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MyDuka E-commerce API",
+    "description": "API for managing products and user authentication in MyDuka e-commerce platform",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5555/",
+      "description": "Development server"
+    },
+    {
+      "url":"https://my-duka-back-end.vercel.app/",
+      "description":"Production server"
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "summary": "User login",
+        "description": "Logs a user into the system",
+        "operationId": "loginUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "admin1@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "adminpassword1"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "Admin"
+                  }
+                },
+                "required": ["email", "password", "role"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User logged in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object"
+                    },
+                    "access_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid role"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/signup": {
+      "post": {
+        "summary": "User signup",
+        "description": "Creates a new user account",
+        "operationId": "signUpUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "full_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "Merchant"
+                  },
+                  "store_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  },
+                  "phone_number": {
+                    "type": "string",
+                    "example": "123456789"
+                  }
+                },
+                "required": ["full_name", "email", "role", "store_id", "password", "phone_number"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object"
+                    },
+                    "access_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid role"
+          },
+          "401": {
+            "description": "Email already registered, kindly log in"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/check_session": {
+      "get": {
+        "summary": "Check session",
+        "description": "Checks the current user's session",
+        "operationId": "checkSession",
+        "responses": {
+          "200": {
+            "description": "Current user session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/getProducts/{store_id}": {
+      "get": {
+        "summary": "Get specific store products",
+        "description": "Retrieves products for a specific store by store ID",
+        "operationId": "getSpecificStoreProducts",
+        "parameters": [
+          {
+            "name": "store_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the store to retrieve products for",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of products for the specified store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sales/{store_id}": {
+      "get": {
+        "summary": "Get sales report for a specific store",
+        "description": "Retrieves sales report for a specific store by store ID",
+        "operationId": "getSalesReport",
+        "parameters": [
+          {
+            "name": "store_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the store to retrieve sales report for",
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of sales reports for the specified store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sales": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "integer", "example": 1 },
+                          "date": { "type": "string", "example": "2023-07-15" },
+                          "product_name": { "type": "string", "example": "Product X" },
+                          "quantity_sold": { "type": "integer", "example": 10 },
+                          "quantity_in_hand": { "type": "integer", "example": 90 },
+                          "store_id": { "type": "integer", "example": 123 },
+                          "profit": { "type": "number", "example": 1000.0 }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Record a sale",
+        "description": "Records a sale for a specific store by store ID",
+        "operationId": "recordSale",
+        "parameters": [
+          {
+            "name": "store_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the store to record the sale for",
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "description": "Date of the sale",
+                    "example": "2023-07-15"
+                  },
+                  "product_name": {
+                    "type": "string",
+                    "description": "Name of the product sold",
+                    "example": "Product X"
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "description": "Quantity of the product sold",
+                    "example": 10
+                  },
+                  "total_price": {
+                    "type": "number",
+                    "description": "Total price of the products sold",
+                    "example": 1000.0
+                  }
+                },
+                "required": ["date", "product_name", "quantity", "total_price"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sale recorded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Sale recorded successfully"
+                    },
+                    "product": {
+                      "type": "object",
+                      "description": "The updated product object",
+                      "properties": {
+                        "id": { "type": "integer", "example": 1 },
+                        "name": { "type": "string", "example": "Product X" },
+                        "description": { "type": "string", "example": "Description of product X" },
+                        "price": { "type": "number", "example": 100.0 },
+                        "closing_stock": { "type": "integer", "example": 90 },
+                        "store_id": { "type": "integer", "example": 123 }
+                      }
+                    },
+                    "sales": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer", "example": 1 },
+                        "date": { "type": "string", "example": "2023-07-15" },
+                        "product_name": { "type": "string", "example": "Product X" },
+                        "quantity_sold": { "type": "integer", "example": 10 },
+                        "quantity_in_hand": { "type": "integer", "example": 90 },
+                        "store_id": { "type": "integer", "example": 123 },
+                        "profit": { "type": "number", "example": 1000.0 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found or insufficient stock"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/requests/{store_id}": {
+      "get": {
+        "summary": "Get requests for a specific store",
+        "description": "Retrieves all requests for a specific store by store ID",
+        "operationId": "getStoreRequests",
+        "parameters": [
+          {
+            "name": "store_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the store to retrieve requests for",
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of requests for the specified store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a request",
+        "description": "Creates a new request for a specific store by store ID",
+        "operationId": "createRequest",
+        "parameters": [
+          {
+            "name": "store_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the store to create the request for",
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product_name": {
+                    "type": "string",
+                    "description": "Name of the product",
+                    "example": "Product X"
+                  },
+                  "stock": {
+                    "type": "integer",
+                    "description": "Quantity of the product",
+                    "example": 10
+                  },
+                  "clerk_id": {
+                    "type": "integer",
+                    "description": "ID of the clerk creating the request",
+                    "example": 1
+                  },
+                  "product_price": {
+                    "type": "number",
+                    "description": "Price of the product",
+                    "example": 100.0
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "Category of the product",
+                    "example": "Electronics"
+                  }
+                },
+                "required": ["product_name", "stock", "clerk_id", "product_price", "category"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Request created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/paymentStatus/{id}": {
+      "get": {
+        "summary": "Update payment status",
+        "description": "Updates the payment status of a product by product ID",
+        "operationId": "updatePaymentStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the product to update payment status for",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        }
+      }
+    },
+    "/clerkAccountStatus/{id}": {
+      "get": {
+        "summary": "Toggle user account status",
+        "description": "Toggles the account status of a user by user ID",
+        "operationId": "toggleUserAccountStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user to toggle account status for",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account status toggled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Status changed to active"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user account",
+        "description": "Deletes a user account by user ID",
+        "operationId": "deleteUserAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user to delete",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User account deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },   "/adminAccountStatus/{id}": {
+      "get": {
+        "summary": "Toggle user account status",
+        "description": "Toggles the account status of a user by user ID",
+        "operationId": "toggleUserAccountStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user to toggle account status for",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account status toggled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Status changed to active"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user account",
+        "description": "Deletes a user account by user ID",
+        "operationId": "deleteUserAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user to delete",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User account deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/getClerk/{store_id}": {
+      "get": {
+        "summary": "Get clerks for a store",
+        "description": "Retrieves the clerks associated with a specific store by store ID",
+        "operationId": "getStoreClerk",
+        "parameters": [
+          {
+            "name": "store_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the store to retrieve the clerks for",
+            "schema": {
+              "type": "integer",
+              "example": 123
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Clerks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Clerks not found"
+          }
+        }
+      }
+    },
+    "/acceptRequests/{id}": {
+      "get": {
+        "summary": "Accept a specific request",
+        "description": "Retrieves a request for a product and accepts it, incrementing the stock of the product",
+        "operationId": "acceptRequests",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "The ID of the request that should be accepted."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request has been successfully accepted and processed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Request accepted and processed."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No requests found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No requests found."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete the request",
+        "description": "Deletes the requests for the product.",
+        "operationId": "deleteRequests",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "The ID of the request being made."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request has been successfully deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Deleted the request for the product."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },    "/getAdmins": {
+      "get": {
+        "summary": "Retrieve all administrators",
+        "description": "Fetches a list of all administrators from the database.",
+        "operationId": "getAdmins",
+        "responses": {
+          "200": {
+            "description": "A list of administrators has been successfully retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "example": 1
+                      },
+                      "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                      },
+                      "email": {
+                        "type": "string",
+                        "example": "johndoe@example.com"
+                      },
+                      "other_property": {
+                        "type": "string",
+                        "example": "example value"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
