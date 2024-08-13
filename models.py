@@ -71,14 +71,14 @@ class Clerk(SerializerMixin,db.Model):
     phone_number = db.Column(db.String)
     _password_hash = db.Column(db.String)
     account_status = db.Column(db.String, default = "active")
-    store_id = db.Column(db.Integer,db.ForeignKey("stores.id"))
+    store_id = db.Column(db.Integer,db.ForeignKey("stores.id"))  # Foreign key to store table
     invitation_token = db.Column(db.String, nullable=True)
     role = db.Column(db.String, default = "Clerk")
 
-    store = db.relationship("Store",back_populates = "clerks")
-    requests = db.relationship("Request",back_populates = "clerk")
-    salesReports = db.relationship("SalesReport", back_populates = "clerk")
-    serialize_rules=("-store.clerk","-requests.clerk","-salesReports.clerk")
+    store = db.relationship("Store",back_populates = "clerks") # Relationship with store
+    requests = db.relationship("Request",back_populates = "clerk") # Relationship with request
+    salesReports = db.relationship("SalesReport", back_populates = "clerk") # Relationship with salesReports
+    serialize_rules=("-store.clerk","-requests.clerk","-salesReports.clerk") # Serialization rules
 
 
     @hybrid_property
