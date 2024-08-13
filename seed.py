@@ -16,7 +16,7 @@ def seed_data():
         db.session.commit()
 
 
-        # Create Merchants
+        # Creation of  Merchants
         merchant1 = Merchant(username="merchant1", email="merchant1@example.com",role="Merchant")
         
 
@@ -27,7 +27,7 @@ def seed_data():
         db.session.commit()
 
 
-        # Create Stores
+        # Creation of  Stores
         store1 = Store(name="Store A", location="Nairobi",merchant_id=merchant1.id)
         store2 = Store(name="Store B", location="Mombasa",merchant_id=merchant1.id)
         store3 = Store(name="Store C", location="Kisumu",merchant_id=merchant1.id)
@@ -36,7 +36,7 @@ def seed_data():
         db.session.commit()
 
       
-        # Create Admins
+        # Creation of Admins
         admin1 = Admin(username="admin1", email="admin1@example.com", store_id=store1.id, role="Admin")
         admin2 = Admin(username="admin2", email="admin2@example.com", store_id=store2.id, role="Admin")
 
@@ -46,7 +46,7 @@ def seed_data():
         db.session.add_all([admin1, admin2])
         db.session.commit()
 
-        # Create Clerks
+        # Creation of  Clerks
         clerk1 = Clerk(username="Grace", email="grace@gmail.com", store_id=store1.id, role="Clerk")
         clerk2 = Clerk(username="Simon", email="simon@gmail.com", store_id=store2.id, role="Clerk")
         clerk3 = Clerk(username="Tony", email="tony@gmail.com", store_id=store1.id, role="Clerk")
@@ -58,7 +58,7 @@ def seed_data():
         db.session.add_all([clerk1, clerk2,clerk3])
         db.session.commit()
                
-         # Create Products
+         # Creation of Products
         product1 = Product(
                     brand_name="Pishori",
                     product_name="Rice",
