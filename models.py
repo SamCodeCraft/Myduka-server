@@ -127,7 +127,7 @@ class Product(db.Model,SerializerMixin):
     store_id = db.Column(db.Integer, db.ForeignKey('stores.id'), nullable=False)
 
 
-    store = db.relationship("Store",back_populates="products")
+    store = db.relationship("Store",back_populates="products") # relation with store
     request = db.relationship("Request", back_populates="product")
     salesReport = db.relationship("SalesReport",back_populates="product")
 
