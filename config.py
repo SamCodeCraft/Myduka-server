@@ -40,6 +40,7 @@ api = Api(app)
 
 db.init_app(app)
 
+
 SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
 API_URL = '/static/swagger.json'  # Our API url (can of course be a local resource)
 
@@ -53,8 +54,3 @@ swaggerui_blueprint = get_swaggerui_blueprint(
     }
 )
 app.register_blueprint(swaggerui_blueprint)
-
-
-
-
-

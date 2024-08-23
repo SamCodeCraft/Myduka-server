@@ -25,7 +25,6 @@ serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 def user_identity_lookup(user):
     return {"id": user.id, "role": user.__class__.__name__} 
 
-
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
@@ -52,6 +51,7 @@ class SignUp(Resource):
         name = data.get("full_name")
         password = data.get("password")
         phone_number = data.get("phone_number")
+        profilePicture = data.get("profilePicture")
 
         try:
             email = serializer.loads(token, salt='email-invite', max_age=86400)  # 1-day expiration
@@ -70,6 +70,7 @@ class SignUp(Resource):
             user.account_status = "active"
             user.phone_number = phone_number
             user.password_hash = password
+            user.profilePicture = profilePicture
                 
             db.session.commit()
 
@@ -189,6 +190,16 @@ class Requests(Resource):
             )
             db.session.add(newRequest)
             db.session.commit()
+            
+            admin = Admin.query.filter_by(store_id=store_id).first()
+            clerk = Clerk.query.filter_by(id=clerk_id).first()
+            print(admin.username)
+            msg = Message("Supply request", recipients=[admin.email])
+            msg.body = f"{clerk.username} has made a supply request for {product.product_name}. Log in to accept or reject it: https://brianhilsden.github.io/MyDuka-FrontEnd"
+            try:
+                mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send email: {e}")
 
 
             return make_response(newRequest.to_dict(), 201)
@@ -209,6 +220,7 @@ class Requests(Resource):
             db.session.add(new_product)
             db.session.commit()
 
+
             newRequest = Request(
                 quantity=quantity,
                 product_id=new_product.id,
@@ -217,6 +229,17 @@ class Requests(Resource):
             )
             db.session.add(newRequest)
             db.session.commit()
+            admin = Admin.query.filter_by(store_id=store_id).first()
+            clerk = Clerk.query.filter_by(id=clerk_id).first()
+            print(clerk.username)
+            msg = Message("Supply request", recipients=[admin.email])
+            msg.body = f"{clerk.username} has made a supply request for {new_product.product_name}. Log in to accept or reject it: https://brianhilsden.github.io/MyDuka-FrontEnd"
+            try:
+                mail.send(msg)
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+           
+
 
             return make_response(newRequest.to_dict(), 201)
 
@@ -307,7 +330,7 @@ class AcceptRequests(Resource):
                 brand_name="Unknown",  
                 product_name="Unknown",  
                 availability=True,
-                payment_status="Not Paid",  
+                payment_status="unpaid",  
                 received_items=request.quantity,
                 closing_stock=request.quantity,
                 spoilt_items=0,
@@ -441,8 +464,185 @@ class GetAllStores(Resource):
 
 api.add_resource(GetAllStores, "/stores")
 
+class editProduct(Resource):
+    def patch(self, id):
+        data = request.get_json()
+        product = Product.query.filter_by(id=id).first()
+        if product:
+            if "buying_price" in data:
+                product.buying_price = float(data["buying_price"])
+            if "selling_price" in data:
+                product.selling_price = float(data["selling_price"])
+
+            if "spoilt_items" in data:
+                product.spoilt_items = int(data["spoilt_items"])
+            
+            try:
+                db.session.commit()
+                return make_response(product.to_dict(), 200)
+            except Exception as e:
+                return make_response({"error": str(e)}, 500)
+        return make_response({"error": "Product not found"}, 404)
+    
+api.add_resource(editProduct,"/updateProduct/<int:id>")
 
 
+class addProduct(Resource):
+    def post(self,store_id):
+        data = request.get_json()
+        brand_name = data.get("brand_name")
+        product_name = data.get("product_name")
+        payment_status = "unpaid"
+        closing_stock = data.get("number_of_items")
+        buying_price = data.get("buying_price")
+        selling_price = data.get("selling_price")
+        store_id = store_id
+        
+
+        product = Product(
+                brand_name=brand_name,  
+                product_name=product_name,  
+                payment_status=payment_status,  
+                received_items=closing_stock,
+                closing_stock=closing_stock,
+                spoilt_items=0,
+                buying_price=buying_price,  
+                selling_price=selling_price,  
+                store_id=store_id
+                )
+        db.session.add(product)
+            
+        db.session.commit()
+        response = make_response(product.to_dict(),201)
+        return response
+
+api.add_resource(addProduct,'/addProduct/<int:store_id>')
+
+class editUser(Resource):
+    def patch(self,id):
+        data = request.get_json()
+        if data.get("role") == "Merchant":
+            user = Merchant.query.filter_by(id=id).first()
+            print("A")
+            
+            for attr in data:
+                setattr(user,attr,data[attr])
+            db.session.add(user)
+            db.session.commit()
+
+            response = make_response(user.to_dict(),200,{"Content-Type":"application/json"})
+            return response
+        elif data.get("role") == "Admin":
+            print("B")
+            user = Admin.query.filter_by(id=id).first()
+            for attr in data:
+                setattr(user,attr,data[attr])
+            db.session.add(user)
+            db.session.commit()
+
+            response = make_response(user.to_dict(),200,{"Content-Type":"application/json"})
+            return response
+
+        else:
+            print("C")
+            user = Clerk.query.filter_by(id=id).first()
+            for attr in data:
+                setattr(user,attr,data[attr])
+            db.session.add(user)
+            db.session.commit()
+
+            response = make_response(user.to_dict(),200,{"Content-Type":"application/json"})
+            return response
+
+
+api.add_resource(editUser,"/editUser/<int:id>")
+
+
+class addStore(Resource):
+    def post(self):
+        data = request.get_json()
+        name = data.get("name")
+        location = data.get("location")
+        merchant = Merchant.query.first()
+
+        store = Store(
+            name=name,
+            location=location,
+            merchant_id = merchant.id
+
+        )
+        db.session.add(store)
+        db.session.commit()
+
+
+        response = make_response(store.to_dict(),201)
+        return response
+    
+api.add_resource(addStore,"/addStore")
+
+
+def generate_reset_token(email):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt='password-reset-salt')
+
+def verify_reset_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=expiration)
+    except:
+        return None
+    return email
+
+@app.route('/api/reset_password_request', methods=['POST'])
+def reset_password_request():
+    data = request.get_json()
+    email = data.get('email')
+    role = data.get("role")
+    user_class = {"Merchant": Merchant, "Admin": Admin, "Clerk": Clerk}.get(role)
+    if not user_class:
+        return make_response({"error": "Invalid role"}, 400)
+
+    user = user_class.query.filter_by(email=email).first()
+    if user:
+        token = generate_reset_token(user.email)
+        reset_url = f"https://brianhilsden.github.io/MyDuka-FrontEnd/#/reset-password/{token}"
+        send_reset_email(user.email, reset_url)
+        return jsonify({"message": "Check your email for the instructions to reset your password"}), 200
+    return jsonify({"message": "No account found with that email"}), 404
+
+# API endpoint to handle the password reset
+@app.route('/api/reset_password/<token>', methods=['POST'])
+def reset_password(token):
+    email = verify_reset_token(token)
+    if not email:
+        return jsonify({"message": "The reset link is invalid or has expired."}), 400
+    
+    data = request.get_json()
+    new_password = data.get('password')
+    role = data.get("role")
+    user_class = {"Merchant": Merchant, "Admin": Admin, "Clerk": Clerk}.get(role)
+    if not user_class:
+        return make_response({"error": "Invalid role"}, 400)
+
+    user = user_class.query.filter_by(email=email).first()
+   
+    
+    if user:
+        user.password_hash = new_password
+        db.session.commit()
+        return jsonify({"message": "Your password has been updated."}), 200
+    
+    return jsonify({"message": "User not found."}), 404
+
+
+def send_reset_email(to_email, reset_url):
+    msg = Message("Password Reset Request", recipients=[to_email])
+    msg.body = f'''To reset your password, visit the following link:
+{reset_url}
+
+If you did not make this request, simply ignore this email and no changes will be made.
+'''
+    mail.send(msg)
 
 
 

@@ -10,6 +10,7 @@ class Merchant(SerializerMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String)
     email = db.Column(db.String)
+    profilePicture = db.Column(db.String)
     role = db.Column(db.String)
     phone_number = db.Column(db.String)
     _password_hash = db.Column(db.String)
@@ -36,6 +37,7 @@ class Admin(SerializerMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String)
     email = db.Column(db.String)
+    profilePicture = db.Column(db.String)
     phone_number = db.Column(db.String)
     _password_hash = db.Column(db.String)
     invitation_token = db.Column(db.String, nullable=True)
@@ -68,17 +70,18 @@ class Clerk(SerializerMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String)
     email = db.Column(db.String)
+    profilePicture = db.Column(db.String)
     phone_number = db.Column(db.String)
     _password_hash = db.Column(db.String)
     account_status = db.Column(db.String, default = "active")
-    store_id = db.Column(db.Integer,db.ForeignKey("stores.id"))  # Foreign key to store table
+    store_id = db.Column(db.Integer,db.ForeignKey("stores.id"))
     invitation_token = db.Column(db.String, nullable=True)
     role = db.Column(db.String, default = "Clerk")
 
-    store = db.relationship("Store",back_populates = "clerks") # Relationship with store
-    requests = db.relationship("Request",back_populates = "clerk") # Relationship with request
-    salesReports = db.relationship("SalesReport", back_populates = "clerk") # Relationship with salesReports
-    serialize_rules=("-store.clerk","-requests.clerk","-salesReports.clerk") # Serialization rules
+    store = db.relationship("Store",back_populates = "clerks")
+    requests = db.relationship("Request",back_populates = "clerk")
+    salesReports = db.relationship("SalesReport", back_populates = "clerk")
+    serialize_rules=("-store.clerk","-requests.clerk","-salesReports.clerk")
 
 
     @hybrid_property
@@ -127,7 +130,7 @@ class Product(db.Model,SerializerMixin):
     store_id = db.Column(db.Integer, db.ForeignKey('stores.id'), nullable=False)
 
 
-    store = db.relationship("Store",back_populates="products") # relation with store
+    store = db.relationship("Store",back_populates="products")
     request = db.relationship("Request", back_populates="product")
     salesReport = db.relationship("SalesReport",back_populates="product")
 
@@ -174,8 +177,3 @@ class SalesReport(db.Model,SerializerMixin):
     clerk = db.relationship("Clerk",back_populates="salesReports")
 
     serialize_rules = ("-product","-store","-clerk.salesReports","-clerk.requests","-clerk.store")
-
-
-
-
-
