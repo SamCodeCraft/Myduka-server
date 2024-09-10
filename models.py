@@ -172,6 +172,8 @@ class SalesReport(db.Model,SerializerMixin):
     quantity_in_hand = db.Column(db.Integer)
     profit = db.Column(db.Integer)
 
+    
+
     product = db.relationship("Product",back_populates="salesReport")
     store = db.relationship("Store",back_populates="salesReports")
     clerk = db.relationship("Clerk",back_populates="salesReports")
